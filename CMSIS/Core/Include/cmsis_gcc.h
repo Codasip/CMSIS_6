@@ -27,7 +27,9 @@
 
 #pragma GCC system_header   /* treat file as system include file */
 
+#if !defined(__riscv)
 #include <arm_acle.h>
+#endif /* !defined(__riscv) */
 
 /* Fallback for __has_builtin */
 #ifndef __has_builtin
@@ -122,6 +124,79 @@
   @{
 */
 
+#if defined(__riscv)
+/* RISC-V Specific functions */
+inline void __disable_irq(void)
+{
+    __asm volatile ( "csrc mstatus, 8" );
+}
+
+inline void __enable_irq(void)
+{
+    __asm volatile ( "csrs mstatus, 8" );
+}
+#endif
+
+/**
+  \brief   Data Synchronization Barrier
+  \details Acts as a special kind of Data Memory Barrier.
+           It completes when all explicit memory accesses before this instruction complete.
+ */
+__STATIC_FORCEINLINE void __DSB(void)
+{
+#if defined(__riscv)
+    __ASM volatile("fence.i");
+#else
+    __ASM volatile ("dsb 0xF":::"memory");
+#endif
+}
+
+
+#if defined(__riscv)
+/**
+  \brief   Count leading zeros
+  \details Counts the number of leading zeros of a data value.
+  \param [in]  value  Value to count the leading zeros
+  \return             number of leading zeros in value
+ */
+__STATIC_FORCEINLINE uint8_t __CLZ(uint32_t value)
+{
+  /* Even though __builtin_clz produces a CLZ instruction on ARM, formally
+     __builtin_clz(0) is undefined behaviour, so handle this case specially.
+     This guarantees ARM-compatible results if happening to compile on a non-ARM
+     target, and ensures the compiler doesn't decide to activate any
+     optimisations using the logic "value was passed to __builtin_clz, so it
+     is non-zero".
+     ARM GCC 7.3 and possibly earlier will optimise this test away, leaving a
+     single CLZ instruction.
+   */
+  if (value == 0U)
+  {
+    return 32U;
+  }
+  return __builtin_clz(value);
+}
+
+/**
+  \brief   Get Process Stack Pointer
+  \details Returns the current value of the Process Stack Pointer (PSP).
+  \return               PSP Register value
+
+  Only called in rtx_thread.c when a thread is terminated or exits.
+  Not sure if this is the correct result - ToDo check
+ */
+__STATIC_FORCEINLINE uint32_t __get_PSP(void)
+{
+  uint32_t result = 0;
+
+  // ARM: __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+  __ASM volatile("mv %0, sp"  : "=r" (result));
+
+  return(result);
+}
+
+
+#else /* !defined(__riscv) */
 /* Define macros for porting to both thumb1 and thumb2.
  * For thumb1, use low register (r0-r7), specified by constraint "l"
  * Otherwise, use general registers, specified by constraint "r" */
@@ -1002,5 +1077,7 @@ __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
 #else
   #error "Unknown Arm architecture profile"
 #endif
+
+#endif /* !defined(__riscv) */
 
 #endif /* __CMSIS_GCC_H */
