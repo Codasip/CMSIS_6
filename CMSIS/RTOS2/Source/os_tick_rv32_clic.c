@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include "rtx_os.h"
+#include "rtx_lib.h"
 #include "os_tick.h"
 #include "platform.h"
 
