@@ -1,6 +1,6 @@
 /*
  * NVIC API:  Copyright (c) 2009-2024 Arm Limited. All rights reserved.
- * CLIC Code: Copyright (c) 2024-2025 Codasip GmbH
+ * CLIC Code: Copyright (c) 2024-2025 Codasip s.r.o.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
