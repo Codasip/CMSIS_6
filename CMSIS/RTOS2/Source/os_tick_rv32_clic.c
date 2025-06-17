@@ -6,7 +6,7 @@
  ******************************************************************************/
 /*
  * Copyright (c) 2017-2021 ARM Limited. All rights reserved. (Function prototypes)
- * Copyright (c) 2025 Codasip GmbH All rights reserved.      (Function code)
+ * Copyright (c) 2025 Codasip s.r.o. All rights reserved.      (Function code)
  *
  * SPDX-License-Identifier: Apache-2.0
  *
