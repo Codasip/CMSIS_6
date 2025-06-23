@@ -208,7 +208,7 @@ typedef union
 
 /* clicintip
 
-clicintip register has a 8 bits and signals whether there is a pending interrupt.
+clicintip register has 8 bits, but only 1 bit is used, it signals whether there is a pending interrupt.
 This bit can be written by software only when interrupt is configured as an edge interrupt (clicintattr.trig[0] == 1).
 
   clicintip register layout
@@ -229,7 +229,7 @@ typedef struct
 
 /* clicintie
 
-clicintie register has 8 bits and is used for enabling and disabling interrupts.
+clicintie register has 8 bits, but only 1 bit is used, it is used for enabling and disabling interrupts.
 
 
 

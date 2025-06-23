@@ -1,5 +1,24 @@
 [![Version](https://img.shields.io/github/v/release/arm-software/CMSIS_6)](https://github.com/ARM-software/CMSIS_6/releases/latest) [![License](https://img.shields.io/github/license/arm-software/CMSIS_6)](https://github.com/ARM-software/CMSIS_6/blob/main/LICENSE)
 
+# Codaip RISC-V Port of CMSIS Version 6
+
+This is a port of ARM's CMSIS_6 to Codasip's Embedded Cores with the Core Level Interrupt Controller (CLIC) and ACLINT MTimer. The port includes an NVIC to Codasip CLIC API wrapper to ease porting from ARM to Codasip RISC-V.
+
+Supported Codasip cores: L100 series: L110.
+
+## Modified Files
+
+* CMSIS/Core/Include/cmsis_clang.h - Ported relevant code for RISC-V interrupts and RTX support
+* CMSIS/Core/Include/cmsis_gcc.h - Ported relevant code for RISC-V interrupts and RTX support
+
+## Aditional Files
+
+* CMSIS/Core/Include/codasip_clic.h - Codasip CLIC Driver (header file)
+* CMSIS/Core/Source/codasip_clic.c - Codasip CLIC Driver (source file)
+* CMSIS/Core/Include/core_rv32_clic.h - NVIC API wrapper for the Codasip CLIC (header file)
+* CMSIS/Core/Source/core_rv32_clic.c - NVIC API wrapper for the Codasip CLIC (source file)
+* CMSIS/RTOS2/Source/os_tick_rv32_clic.c - Port of OS_Tick_*() functions to Codasip ACLINT MTimer for RTX support
+
 # CMSIS Version 6
 
 > **Note:** The branch *main* of this GitHub repository contains our current state of development and gives you contiguous access to the CMSIS development for review, feedback, and contributions via pull requests. For stable versions ready for productive use please refer to tagged releases, like [![Version](https://img.shields.io/github/v/release/arm-software/CMSIS_6?display_name=release&label=%20&sort=semver)](https://github.com/ARM-software/CMSIS_6/releases/latest).
