@@ -518,9 +518,10 @@ __STATIC_INLINE void __NVIC_SetVector(IRQn_Type IRQn, uint32_t vector)
             }
             else
             {
-#ifdef FIXED_IRQ_HANDLERS
-#warning FIXED_IRQ_HANDLERS is set, you are using a fixed vector table. Note: __NVIC_SetVector() will not change the vector address, instead see interrupt_vector.S.
-#endif
+                /* If FIXED_IRQ_HANDLERS is set, then you are using a fixed vector table.
+                 * Note: codasip_clic_irq_set_vectored() (and __NVIC_SetVector()) will not change
+                 * the vector address, instead see interrupt_vector.S.
+                 */
 
                 /* Save the interrupt handler function pointer in the interrupt vector table */
                 codasip_clic_irq_set_vectored(IRQn, true, (void (*)(void)) vector);

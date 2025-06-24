@@ -43,7 +43,7 @@ void codasip_clic_irq_set_vectored(uint32_t irq, bool vectored, void (*irq_handl
     if (irq < CLIC_NUM_INTERRUPT)
     {
 #ifdef FIXED_IRQ_HANDLERS
-#warning FIXED_IRQ_HANDLERS is set, you are using a fixed vector table. Note: codasip_clic_irq_vectored_set() will not change the vector address, instead see interrupt_vector.S.
+#warning FIXED_IRQ_HANDLERS is set, you are using a fixed vector table. Note: codasip_clic_irq_set_vectored() (and __NVIC_SetVector()) will not change the vector address, instead see interrupt_vector.S.
 
 #else
         /* Save the interrupt handler function pointer in the interrupt vector table */
