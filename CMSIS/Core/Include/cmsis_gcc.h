@@ -1,3 +1,4 @@
+// clang-format off
 /**************************************************************************//**
  * @file     cmsis_gcc.h
  * @brief    CMSIS compiler GCC header file
@@ -29,7 +30,7 @@
 
 #if !defined(__riscv)
 #include <arm_acle.h>
-#endif /* !defined(__riscv) */
+#endif
 
 /* Fallback for __has_builtin */
 #ifndef __has_builtin
@@ -118,6 +119,7 @@
   #define __ALIAS(x)                             __attribute__ ((alias(x)))
 #endif
 
+
 /* ##########################  Core Instruction Access  ######################### */
 /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
   Access to dedicated instructions
@@ -146,7 +148,7 @@ __STATIC_FORCEINLINE void __DSB(void)
 {
 #if defined(__riscv)
     __ASM volatile("fence.i");
-#else
+#else // ARM
     __ASM volatile ("dsb 0xF":::"memory");
 #endif
 }
@@ -176,6 +178,7 @@ __STATIC_FORCEINLINE uint8_t __CLZ(uint32_t value)
   }
   return __builtin_clz(value);
 }
+#endif
 
 /**
   \brief   Get Process Stack Pointer
@@ -189,14 +192,16 @@ __STATIC_FORCEINLINE uint32_t __get_PSP(void)
 {
   uint32_t result = 0;
 
-  // ARM: __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+#if defined(__riscv)
   __ASM volatile("mv %0, sp"  : "=r" (result));
+#else // ARM
+  __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+#endif
 
   return(result);
 }
 
-
-#else /* !defined(__riscv) */
+#if !defined(__riscv)
 /* Define macros for porting to both thumb1 and thumb2.
  * For thumb1, use low register (r0-r7), specified by constraint "l"
  * Otherwise, use general registers, specified by constraint "r" */
@@ -1009,7 +1014,7 @@ __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
   #define     __SEL                   __sel
   #define     __QADD                  __qadd
   #define     __QSUB                  __qsub
-  
+
   #define __PKHBT(ARG1,ARG2,ARG3) \
   __extension__ \
   ({                          \
@@ -1017,7 +1022,7 @@ __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
     __ASM ("pkhbt %0, %1, %2, lsl %3" : "=r" (__RES) :  "r" (__ARG1), "r" (__ARG2), "I" (ARG3)  ); \
     __RES; \
    })
-  
+
   #define __PKHTB(ARG1,ARG2,ARG3) \
   __extension__ \
   ({                          \
@@ -1028,7 +1033,7 @@ __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
       __ASM ("pkhtb %0, %1, %2, asr %3" : "=r" (__RES) :  "r" (__ARG1), "r" (__ARG2), "I" (ARG3)  ); \
     __RES; \
    })
-  
+
   __STATIC_FORCEINLINE uint32_t __SXTB16_RORn(uint32_t op1, uint32_t rotate)
   {
       uint32_t result;
@@ -1042,7 +1047,7 @@ __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
       }
       return result;
   }
-  
+
   __STATIC_FORCEINLINE uint32_t __SXTAB16_RORn(uint32_t op1, uint32_t op2, uint32_t rotate)
   {
       uint32_t result;
@@ -1056,11 +1061,11 @@ __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
       }
       return result;
   }
-  
+
   __STATIC_FORCEINLINE int32_t __SMMLA (int32_t op1, int32_t op2, int32_t op3)
   {
     int32_t result;
-  
+
     __ASM volatile ("smmla %0, %1, %2, %3" : "=r" (result): "r"  (op1), "r" (op2), "r" (op3) );
     return (result);
   }
@@ -1077,7 +1082,6 @@ __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
 #else
   #error "Unknown Arm architecture profile"
 #endif
-
 #endif /* !defined(__riscv) */
 
 #endif /* __CMSIS_GCC_H */

@@ -1,3 +1,4 @@
+// clang-format off
 /**************************************************************************//**
  * @file     cmsis_clang.h
  * @brief    CMSIS compiler LLVM/Clang header file
@@ -118,6 +119,7 @@
   #define __ALIAS(x)                             __attribute__ ((alias(x)))
 #endif
 
+
 /* ##########################  Core Instruction Access  ######################### */
 /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
   Access to dedicated instructions
@@ -176,6 +178,7 @@ __STATIC_FORCEINLINE uint8_t __CLZ(uint32_t value)
   }
   return __builtin_clz(value);
 }
+#endif
 
 /**
   \brief   Get Process Stack Pointer
@@ -189,14 +192,16 @@ __STATIC_FORCEINLINE uint32_t __get_PSP(void)
 {
   uint32_t result = 0;
 
-  // ARM: __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+#if defined(__riscv)
   __ASM volatile("mv %0, sp"  : "=r" (result));
+#else // ARM
+  __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+#endif
 
   return(result);
 }
 
-
-#else /* !defined(__riscv) */
+#if !defined(__riscv)
 /* Define macros for porting to both thumb1 and thumb2.
  * For thumb1, use low register (r0-r7), specified by constraint "l"
  * Otherwise, use general registers, specified by constraint "r" */
