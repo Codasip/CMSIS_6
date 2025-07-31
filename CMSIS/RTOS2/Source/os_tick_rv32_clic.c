@@ -24,10 +24,19 @@
  */
 
 #include <stdint.h>
-#include "rtx_os.h"
-#include "rtx_lib.h"
 #include "os_tick.h"
 #include "platform.h"
+
+#if defined(_RTE_)
+#include "RTE_Components.h"
+#endif
+
+#ifdef CMSIS_device_header
+#include CMSIS_device_header
+
+#else
+#include "core_rv32_clic.h"
+#endif
 
 static uint32_t clocks_per_tick = 0;
 static uint32_t tick_freq = 0;
