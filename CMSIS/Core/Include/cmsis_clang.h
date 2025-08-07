@@ -120,24 +120,72 @@
 #endif
 
 
+#if defined(__riscv)
+/* RISC-V Specific functions */
+
 /* ##########################  Core Instruction Access  ######################### */
 /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
   Access to dedicated instructions
   @{
 */
 
-#if defined(__riscv)
-/* RISC-V Specific functions */
-inline void __disable_irq(void)
+/**
+  \brief   Get Process Stack Pointer
+  \details Returns the current value of the Process Stack Pointer (PSP).
+  \return               PSP Register value
+
+  Only called in rtx_thread.c when a thread is terminated or exits.
+  Not sure if this is the correct result - ToDo check
+ */
+__STATIC_FORCEINLINE uint32_t __get_PSP(void)
 {
-    __asm volatile ( "csrc mstatus, 8" );
+  uint32_t result = 0;
+
+  __ASM volatile("mv %0, sp"  : "=r" (result));
+
+  return(result);
 }
 
-inline void __enable_irq(void)
+/**
+  \brief   No Operation
+  \details No Operation does nothing. This instruction can be used for code alignment purposes.
+ */
+#define __NOP()         __ASM volatile ("nop")
+
+
+/**
+  \brief   Wait For Interrupt
+  \details Wait For Interrupt is a hint instruction that suspends execution until one of a number of events occurs.
+ */
+#define __WFI()         __ASM volatile ("wfi":::"memory")
+
+
+/**
+  \brief   Wait For Event
+  \details Wait For Event is a hint instruction that permits the processor to enter
+           a low-power state until one of a number of events occurs.
+ */
+// Not available on RISC-V  #define __WFE()         __ASM volatile ("wfe":::"memory")
+
+
+/**
+  \brief   Send Event
+  \details Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ */
+// Not available on RISC-V  #define __SEV()         __ASM volatile ("sev")
+
+
+/**
+  \brief   Instruction Synchronization Barrier
+  \details Instruction Synchronization Barrier flushes the pipeline in the processor,
+           so that all instructions following the ISB are fetched from cache or memory,
+           after the instruction has been completed.
+ */
+__STATIC_FORCEINLINE void __ISB(void)
 {
-    __asm volatile ( "csrs mstatus, 8" );
+  __ASM volatile ("fence.i" ::: "memory");
 }
-#endif
+
 
 /**
   \brief   Data Synchronization Barrier
@@ -146,15 +194,115 @@ inline void __enable_irq(void)
  */
 __STATIC_FORCEINLINE void __DSB(void)
 {
-#if defined(__riscv)
-    __ASM volatile("fence.i");
-#else
-    __ASM volatile ("dsb 0xF":::"memory");
-#endif
+  __ASM volatile ("fence rw, rw" ::: "memory");
 }
 
 
-#if defined(__riscv)
+/**
+  \brief   Data Memory Barrier
+  \details Ensures the apparent order of the explicit memory operations before
+           and after the instruction, without ensuring their completion.
+ */
+__STATIC_FORCEINLINE void __DMB(void)
+{
+  __ASM volatile ("fence rw, rw" ::: "memory");
+}
+
+
+/**
+  \brief   Reverse byte order (32 bit)
+  \details Reverses the byte order in unsigned integer value. For example, 0x12345678 becomes 0x78563412.
+  \param [in]    value  Value to reverse
+  \return               Reversed value
+ */
+__STATIC_FORCEINLINE uint32_t __REV(uint32_t value)
+{
+  return __builtin_bswap32(value);
+}
+
+
+/**
+  \brief   Reverse byte order (16 bit)
+  \details Reverses the byte order within each halfword of a word. For example, 0x12345678 becomes 0x34127856.
+  \param [in]    value  Value to reverse
+  \return               Reversed value
+ */
+__STATIC_FORCEINLINE uint32_t __REV16(uint32_t value)
+{
+  uint32_t mask, result;
+
+  mask = 0x00ff00ff;
+  result = ((result & mask) << 8) | ((result >> 8) & mask);
+
+  return (result);
+}
+
+
+/**
+  \brief   Reverse byte order (16 bit)
+  \details Reverses the byte order in a 16-bit value and returns the signed 16-bit result. For example, 0x0080 becomes 0x8000.
+  \param [in]    value  Value to reverse
+  \return               Reversed value
+ */
+__STATIC_FORCEINLINE int16_t __REVSH(int16_t value)
+{
+  return (int16_t)__builtin_bswap16(value);
+}
+
+
+/**
+  \brief   Rotate Right in unsigned value (32 bit)
+  \details Rotate Right (immediate) provides the value of the contents of a register rotated by a variable number of bits.
+  \param [in]    op1  Value to rotate
+  \param [in]    op2  Number of Bits to rotate
+  \return               Rotated value
+ */
+__STATIC_FORCEINLINE uint32_t __ROR(uint32_t op1, uint32_t op2)
+{
+  op2 %= 32U;
+  if (op2 == 0U)
+  {
+    return op1;
+  }
+  return (op1 >> op2) | (op1 << (32U - op2));
+}
+
+
+/**
+  \brief   Breakpoint
+  \details Causes the processor to enter Debug state.
+           Debug tools can use this to investigate system state when the instruction at a particular address is reached.
+  \param [in]    value  is ignored by the processor.
+                 If required, a debugger can use it to store additional information about the breakpoint.
+ */
+#define __BKPT(value) __ASM volatile ("ebreak") // value is currently lost for RISC-V
+
+
+/**
+  \brief   Reverse bit order of value
+  \details Reverses the bit order of the given value.
+  \param [in]    value  Value to reverse
+  \return               Reversed value
+ */
+__STATIC_FORCEINLINE uint32_t __RBIT(uint32_t value)
+{
+  uint32_t result;
+
+  uint32_t s = (4U /*sizeof(v)*/ * 8U) - 1U; /* extra shift needed at end */
+
+  result = value;                      /* r will be reversed bits of v; first get LSB of v */
+  for (value >>= 1U; value != 0U; value >>= 1U)
+  {
+    result <<= 1U;
+    result |= value & 1U;
+    s--;
+  }
+  result <<= s;                        /* shift when v's highest bits are zero */
+
+  return (result);
+}
+
+
 /**
   \brief   Count leading zeros
   \details Counts the number of leading zeros of a data value.
@@ -178,30 +326,38 @@ __STATIC_FORCEINLINE uint8_t __CLZ(uint32_t value)
   }
   return __builtin_clz(value);
 }
-#endif
+
+/* ###########################  Core Function Access  ########################### */
+/** \ingroup  CMSIS_Core_FunctionInterface
+    \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+  @{
+ */
 
 /**
-  \brief   Get Process Stack Pointer
-  \details Returns the current value of the Process Stack Pointer (PSP).
-  \return               PSP Register value
-
-  Only called in rtx_thread.c when a thread is terminated or exits.
-  Not sure if this is the correct result - ToDo check
+  \brief   Enable IRQ Interrupts
+  \details Enables IRQ interrupts by setting a bit in the special-purpose register MSTATUS.
  */
-__STATIC_FORCEINLINE uint32_t __get_PSP(void)
+__STATIC_FORCEINLINE void __enable_irq(void)
 {
-  uint32_t result = 0;
-
-#if defined(__riscv)
-  __ASM volatile("mv %0, sp"  : "=r" (result));
-#else // ARM
-  __ASM volatile ("MRS %0, psp"  : "=r" (result) );
-#endif
-
-  return(result);
+    __asm volatile ( "csrs mstatus, 8" );
 }
 
-#if !defined(__riscv)
+/**
+  \brief   Disable IRQ Interrupts
+  \details Disables IRQ interrupts by clearing a bit in the special-purpose register MSTATUS.
+ */
+__STATIC_FORCEINLINE void __disable_irq(void)
+{
+    __asm volatile ( "csrc mstatus, 8" );
+}
+
+#else /* !defined(__riscv) */
+/* ##########################  Core Instruction Access  ######################### */
+/** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+  Access to dedicated instructions
+  @{
+*/
+
 /* Define macros for porting to both thumb1 and thumb2.
  * For thumb1, use low register (r0-r7), specified by constraint "l"
  * Otherwise, use general registers, specified by constraint "r" */
