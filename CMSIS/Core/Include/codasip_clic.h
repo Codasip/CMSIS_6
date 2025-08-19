@@ -389,6 +389,7 @@ static inline void codasip_clic_irq_clear_pending(uint32_t irq)
     (*clicint)[irq].clicintip.pending = 0;
 }
 
+/* Function call version of inline function codasip_clic_irq_clear_pending() */
 void codasip_clic_irq_clear_pending_call(uint32_t irq);
 
 /* Set interrupt pending bit (only works in edge trigger mode) */

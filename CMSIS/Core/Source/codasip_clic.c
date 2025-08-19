@@ -27,6 +27,7 @@ void (*mtvt_table[CLIC_NUM_INTERRUPT])(void) __attribute__((aligned(64))) __attr
 static uint8_t clic_max_level;
 static uint8_t clic_max_priority;
 
+/* Function call version of inline function codasip_clic_irq_clear_pending() */
 void codasip_clic_irq_clear_pending_call(uint32_t irq)
 {
     (*clicint)[irq].clicintip.pending = 0;
