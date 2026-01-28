@@ -1,4 +1,4 @@
-/* Copyright (c) 2024-2025 Codasip s.r.o.
+/* Copyright (c) 2024-2026 Codasip s.r.o.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -21,7 +21,7 @@
 
 /* CLIC Interrupt Vector Table */
 #ifndef FIXED_IRQ_HANDLERS
-void (*mtvt_table[CLIC_NUM_INTERRUPT])(void) __attribute__((aligned(64))) __attribute__((section(".mtvt_table"))) = {0};
+void (*mtvt_table[CLIC_NUM_INTERRUPT])(void) __attribute__((aligned(64))) = {0};
 #endif
 
 static uint8_t clic_max_level;
