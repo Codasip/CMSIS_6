@@ -19,7 +19,11 @@
 
 #include "codasip_clic.h"
 
-/* CLIC Interrupt Vector Table */
+/* Fence instruction:
+ * Ensures that all previous stores to memory are visible before subsequent instruction fetches */
+#define fence_i()   __asm__ volatile("fence.i")
+
+/* CLIC Interrupt Vector Table. Note: The interrupt vectors are read by the instruction bus */
 #ifndef FIXED_IRQ_HANDLERS
 void (*mtvt_table[CLIC_NUM_INTERRUPT])(void) __attribute__((aligned(64))) = {0};
 #endif
@@ -51,11 +55,16 @@ void codasip_clic_irq_set_vectored(uint32_t irq, bool vectored, void (*irq_handl
         mtvt_table[irq] = irq_handler;
 #endif
 
+        /* Make sure the vector is written to memory before the next instructions are read.
+         * Note: On an interrupt, CLIC vectors are read via the instruction bus (not the data bus),
+         *       so a fence.i is necessary here, in a cached system, to ensure the vector is
+         *       written through the cache to memory before the vector is read */
+        fence_i();
+
         /* Set the interrupt vectored mode */
         (*clicint)[irq].clicintattr.shv = vectored;
     }
 }
-
 
 /* Set interrupt level */
 void codasip_clic_irq_set_level(uint32_t irq, uint32_t level, codasip_clic_trig_t trig)
