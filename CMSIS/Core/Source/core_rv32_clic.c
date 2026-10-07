@@ -85,6 +85,7 @@ uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, 
   uint32_t SubPriorityBits;     /* CLIC Priority bits */
   uint32_t PreemptPriorityMask;
   uint32_t SubPriorityMask;
+  uint32_t Priority;
 
   PreemptPriorityBits = ((7UL - PriorityGroupTmp) > (uint32_t)(__NVIC_PRIO_BITS)) ? (uint32_t)(__NVIC_PRIO_BITS) : (uint32_t)(7UL - PriorityGroupTmp);
   SubPriorityBits     = 8 - PreemptPriorityBits;
@@ -108,13 +109,19 @@ uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, 
   PreemptPriority = PreemptPriorityMask - PreemptPriority;
   SubPriority     = SubPriorityMask     - SubPriority;
 
-  /* When CLICINTCTLBITS == 8 and xnlbits == 8, if level == 0 then this is not an active interrupt.
-   * This is not an issue when emulating the NVIC as PriorityGroup 0..7 represents binary point
-   * position 1..8 for the division between PreemptPriority and SubPriority, i.e. there will
-   * always be at least 1 bit of SubPriority, so level+priority will always >= 1.
-   * (When xnlbits < 8, then all the levels are greater than zero since the LSBs are assumed to be 1) */
+  Priority = (PreemptPriority << SubPriorityBits) | SubPriority;
 
-  return ( (PreemptPriority << SubPriorityBits) | SubPriority );
+  /* When CLICINTCTLBITS == 8 and xnlbits == 8, if level == 0 then this is not an active interrupt
+   * (it can never be taken). The lowest NVIC priority (maximum PreemptPriority and SubPriority)
+   * inverts to 0, so map it to 1, the lowest CLIC level that can interrupt.
+   * (When xnlbits < 8, all the levels are greater than zero since the LSBs are read as 1's, so
+   * 0 and 1 are the same level) */
+  if (Priority == 0)
+  {
+      Priority = 1;
+  }
+
+  return Priority;
 }
 
 /**
